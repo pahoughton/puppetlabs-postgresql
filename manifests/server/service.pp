@@ -14,7 +14,20 @@ class postgresql::server::service {
   }
 
   anchor { 'postgresql::server::service::begin': }
+  case $::operatingsystem {
+    'fedora' : {
+      $datadir = $postgresql::server::datadir
 
+      file { '/etc/systemd/system/postgresql.service' :
+        ensure  => 'file',
+        content => template('postresql/postgresql.service.erb'),
+        before  => Service['postgresqld'],
+      }
+    }
+    default : {
+      notify { 'fixme - init full datadir support for all os needed.' : }
+    }
+  }
   service { 'postgresqld':
     ensure    => $service_ensure,
     name      => $service_name,
