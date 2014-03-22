@@ -1,0 +1,8 @@
+# -*- conf -*-
+# postgresql.service.erb - 2014-03-22 05:08
+#
+# Copyright (c) 2014 Paul Houghton <paul4hough@gmail.com>
+#
+.include /lib/systemd/system/postgresql.service
+[Service]
+Environment=PGDATA=<%= @datadir %>
