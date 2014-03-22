@@ -13,10 +13,12 @@ class postgresql::server::initdb {
   if($ensure == 'present' or $ensure == true) {
     # Make sure the data directory exists, and has the correct permissions.
     file { $datadir:
-      ensure => directory,
-      owner  => $user,
-      group  => $group,
-      mode   => '0700',
+      ensure  => directory,
+      owner   => $user,
+      group   => $group,
+      # fixme - hardcoded - testing
+      seltype => 'postgresql_db_t',
+      mode    => '0700',
     }
 
     if($xlogdir) {
