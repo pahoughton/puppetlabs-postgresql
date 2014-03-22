@@ -20,8 +20,9 @@ class postgresql::server::service {
 
       file { '/etc/systemd/system/postgresql.service' :
         ensure  => 'file',
-        content => template('postresql/postgresql.service.erb'),
+        content => template('postgresql/postgresql.service.erb'),
         before  => Service['postgresqld'],
+        # todo notify new systemd file
       }
     }
     default : {
