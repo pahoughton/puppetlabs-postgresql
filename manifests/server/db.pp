@@ -20,27 +20,25 @@ define postgresql::server::db (
     owner      => $owner,
   }
 
-  # todo - I'm sure there is a better way!
   if ! defined(Postgresql::Server::Role[$user]) {
     postgresql::server::role { $user:
       password_hash => $password,
     }
+    Postgresql::Server::role[$tablespace]
     ->
-    postgresql::server::database_grant { "GRANT ${user} - ${grant} - ${name}":
-      privilege => $grant,
-      db        => $name,
-      role      => $user,
-    }
-  } else {
-    postgresql::server::database_grant { "GRANT ${user} - ${grant} - ${name}":
-      privilege => $grant,
-      db        => $name,
-      role      => $user,
-    }
+    Postgresql::Server::Database[$name]
+  }
+  postgresql::server::database_grant { "GRANT ${user} - ${grant} - ${name}":
+    privilege => $grant,
+    db        => $name,
+    role      => $user,
   }
 
 
-  if($tablespace != undef and defined(Postgresql::Server::Tablespace[$tablespace])) {
-    Postgresql::Server::Tablespace[$tablespace]->Postgresql::Server::Database[$name]
+  if( $tablespace != undef
+      and defined(Postgresql::Server::Tablespace[$tablespace])) {
+    Postgresql::Server::Tablespace[$tablespace]
+    ->
+    Postgresql::Server::Database[$name]
   }
 }
