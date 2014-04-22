@@ -24,7 +24,7 @@ define postgresql::server::db (
     postgresql::server::role { $user:
       password_hash => $password,
     }
-    Postgresql::Server::role[$tablespace]
+    Postgresql::Server::Role[$user]
     ->
     Postgresql::Server::Database[$name]
   }
