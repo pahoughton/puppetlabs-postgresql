@@ -40,6 +40,8 @@ define postgresql::validate_db_connection(
     default => "PGPASSWORD=${database_password}",
     undef   => undef,
   }
+  $client_package_name = $postgresql::params::client_package_name
+
   $cmd = join([$cmd_init, $cmd_host, $cmd_user, $cmd_port, $cmd_dbname])
   $validate_cmd = "/usr/local/bin/validate_postgresql_connection.sh ${sleep} ${tries} '${cmd}'"
 
@@ -57,7 +59,7 @@ define postgresql::validate_db_connection(
     user        => $run_as,
     path        => '/bin:/usr/bin:/usr/local/bin',
     timeout     => $timeout,
-    require     => Package['postgresql-client'],
+    require     => Package[$client_package_name],
   }
 
   # This is a little bit of puppet magic.  What we want to do here is make
