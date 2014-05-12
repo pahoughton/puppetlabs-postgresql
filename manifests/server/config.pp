@@ -4,6 +4,8 @@ class postgresql::server::config {
   $ip_mask_deny_postgres_user = $postgresql::server::ip_mask_deny_postgres_user
   $ip_mask_allow_all_users    = $postgresql::server::ip_mask_allow_all_users
   $listen_addresses           = $postgresql::server::listen_addresses
+  $confdir                    = $postgresql::server::confdir
+  $datadir                    = $postgresql::server::datadir
   $port                       = $postgresql::server::port
   $ipv4acls                   = $postgresql::server::ipv4acls
   $ipv6acls                   = $postgresql::server::ipv6acls
@@ -14,6 +16,15 @@ class postgresql::server::config {
   $group                      = $postgresql::server::group
   $version                    = $postgresql::server::version
   $manage_pg_hba_conf         = $postgresql::server::manage_pg_hba_conf
+
+  $seltype = $::selinux ? {
+    false   => undef,
+    undef   => undef,
+    default => 'postgresql_db_t',
+  }
+  File {
+    seltype => $seltype,
+  }
 
   if ($ensure == 'present' or $ensure == true) {
 
@@ -101,15 +112,29 @@ class postgresql::server::config {
     postgresql::server::config_entry { 'port':
       value => "${port}",
     }
+    postgresql::server::config_entry { 'data_directory':
+      value => "${datadir}",
+    }
 
     # RedHat-based systems hardcode some PG* variables in the init script, and need to be overriden
     # in /etc/sysconfig/pgsql/postgresql. Create a blank file so we can manage it with augeas later.
-    if ($::osfamily == 'RedHat') {
+    if ($::operatingsystem == 'Fedora') {
+      file { '/etc/sysconfig/pgsql' :
+        ensure  => 'directory',
+      }
+      ->
       file { '/etc/sysconfig/pgsql/postgresql':
-        ensure  => present,
+        ensure  => 'present',
         replace => false,
       }
     }
+
+    if( $::operatingsystem == 'Ubuntu' and $::operatingsystemrelease == '14' ) {
+      file { "${confdir}/environment" :
+        ensure  => 'present',
+      }
+    }
+
   } else {
     file { $pg_hba_conf_path:
       ensure => absent,

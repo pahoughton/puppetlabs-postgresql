@@ -10,14 +10,21 @@ class postgresql::server::initdb {
   $group        = $postgresql::server::group
   $user         = $postgresql::server::user
 
+  $seltype = $::selinux ? {
+    false   => undef,
+    undef   => undef,
+    default => 'postgresql_db_t',
+  }
+  File {
+    seltype => $seltype,
+  }
+
   if($ensure == 'present' or $ensure == true) {
     # Make sure the data directory exists, and has the correct permissions.
     file { $datadir:
       ensure  => directory,
       owner   => $user,
       group   => $group,
-      # fixme - hardcoded - testing
-      seltype => 'postgresql_db_t',
       mode    => '0700',
     }
 

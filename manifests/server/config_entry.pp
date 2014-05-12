@@ -5,6 +5,7 @@ define postgresql::server::config_entry (
   $path   = false
 ) {
   $postgresql_conf_path = $postgresql::server::postgresql_conf_path
+  $confdir = $postgresql::server::confdir
 
   $target = $path ? {
     false   => $postgresql_conf_path,
@@ -27,15 +28,34 @@ define postgresql::server::config_entry (
   }
 
   if ($::osfamily == 'RedHat') {
+    Augeas {
+      lens    => 'Shellvars.lns',
+      incl    => '/etc/sysconfig/pgsql/*',
+      context => '/files/etc/sysconfig/pgsql/postgresql',
+      require => File['/etc/sysconfig/pgsql/postgresql'],
+      notify  => Class['postgresql::server::service'],
+      before  => Class['postgresql::server::reload'],
+    }
     if ($name == 'port') {
       augeas { 'override PGPORT in /etc/sysconfig/pgsql/postgresql':
-        lens    => 'Shellvars.lns',
-        incl    => '/etc/sysconfig/pgsql/*',
-        context => '/files/etc/sysconfig/pgsql/postgresql',
         changes => "set PGPORT $value",
-        require => File['/etc/sysconfig/pgsql/postgresql'],
-        notify  => Class['postgresql::server::service'],
-        before  => Class['postgresql::server::reload'],
+      }
+    }
+    if ($name == 'data_directory') {
+      augeas { 'override PGDATA in /etc/sysconfig/pgsql/postgresql':
+        changes => "set PGDATA $value",
+      }
+    }
+  }
+  if( $::operatingsystem == 'Ubuntu' and $::operatingsystemrelease == '14' ) {
+    Augeas {
+      context => "/files/${confdir}/environment",
+      notify  => Class['postgresql::server::service'],
+      before  => Class['postgresql::server::reload'],
+    }
+    if ($name == 'data_directory') {
+      augeas { "override PGDATA in ${confdir}/environment":
+        changes => "PGDATA = $value",
       }
     }
   }

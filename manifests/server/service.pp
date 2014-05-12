@@ -15,21 +15,7 @@ class postgresql::server::service {
   }
 
   anchor { 'postgresql::server::service::begin': }
-  case $::operatingsystem {
-    'fedora' : {
-      $datadir = $postgresql::server::datadir
 
-      file { '/etc/systemd/system/postgresql.service' :
-        ensure  => 'file',
-        content => template('postgresql/postgresql.service.erb'),
-        before  => Service['postgresqld'],
-        # todo notify new systemd file
-      }
-    }
-    default : {
-      notify { 'fixme - init full datadir support for all os needed.' : }
-    }
-  }
   service { 'postgresqld':
     ensure    => $service_ensure,
     name      => $service_name,
@@ -45,6 +31,8 @@ class postgresql::server::service {
     #
     # Without it, we may continue doing more work before the database is
     # prepared leading to a nasty race condition.
+    $client_package_name = $postgresql::params::client_package_name
+    ensure_packages([$client_package_name])
     postgresql::validate_db_connection { 'validate_service_is_running':
       run_as          => $user,
       database_name   => $default_database,
