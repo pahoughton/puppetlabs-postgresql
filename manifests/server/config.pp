@@ -123,7 +123,7 @@ class postgresql::server::config {
       if ($::operatingsystem == 'Fedora') {
         file { '/etc/systemd/system/postgresql.service' :
           ensure => 'file',
-          content => template('postresql/ postgresql.service.erb'),
+          content => template('postresql/postgresql.service.erb'),
         }
       }
         file { '/etc/sysconfig/pgsql' :
