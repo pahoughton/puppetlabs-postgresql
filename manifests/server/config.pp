@@ -118,8 +118,15 @@ class postgresql::server::config {
 
     # RedHat-based systems hardcode some PG* variables in the init script, and need to be overriden
     # in /etc/sysconfig/pgsql/postgresql. Create a blank file so we can manage it with augeas later.
-    if ($::operatingsystem == 'Fedora') {
-      file { '/etc/sysconfig/pgsql' :
+    if ($::osfamily == 'Redhat') {
+      # fedora uses systemd
+      if ($::operatingsystem == 'Fedora') {
+        file { '/etc/systemd/system/postgresql.service' :
+          ensure => 'file',
+          content => template('postresql/ postgresql.service.erb'),
+        }
+      }
+        file { '/etc/sysconfig/pgsql' :
         ensure  => 'directory',
       }
       ->
