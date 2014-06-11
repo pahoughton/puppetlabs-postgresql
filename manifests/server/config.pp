@@ -122,8 +122,14 @@ class postgresql::server::config {
       # fedora uses systemd
       if ($::operatingsystem == 'Fedora') {
         file { '/etc/systemd/system/postgresql.service' :
-          ensure => 'file',
-          content => template('postresql/postgresql.service.erb'),
+          ensure  => 'file',
+          content => template('postgresql/postgresql.service.erb'),
+        }
+        ->
+        # fixme - im sure there is a better way
+        # systemd needs the reload to notice the service file
+        exec { '/bin/systemctl daemon-reload' :
+          notify  => Class['postgresql::server::reload'],
         }
       }
         file { '/etc/sysconfig/pgsql' :
